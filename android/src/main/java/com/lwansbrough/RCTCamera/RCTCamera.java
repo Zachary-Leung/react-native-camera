@@ -255,19 +255,25 @@ public class RCTCamera {
         int width = optimalPreviewSize.width;
         int height = optimalPreviewSize.height;
 
-        parameters.setPreviewSize(width, height);
-        try {
-            camera.setParameters(parameters);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        if(RCTCameraView.screenHigh >0){
+            if(height > RCTCameraView.screenHigh || width > RCTCameraView.screenWidth){
+                height = RCTCameraView.screenHigh;
+                width = RCTCameraView.screenWidth;
+            }
+            parameters.setPreviewSize(width, height);
+            try {
+                camera.setParameters(parameters);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
 
-        if (cameraInfo.rotation == 0 || cameraInfo.rotation == 180) {
-            cameraInfo.previewWidth = width;
-            cameraInfo.previewHeight = height;
-        } else {
-            cameraInfo.previewWidth = height;
-            cameraInfo.previewHeight = width;
+            if (cameraInfo.rotation == 0 || cameraInfo.rotation == 180) {
+                cameraInfo.previewWidth = width;
+                cameraInfo.previewHeight = height;
+            } else {
+                cameraInfo.previewWidth = height;
+                cameraInfo.previewHeight = width;
+            }
         }
     }
 

@@ -20,6 +20,8 @@ public class RCTCameraView extends ViewGroup {
     private String _captureQuality = "high";
     private int _torchMode = -1;
     private int _flashMode = -1;
+    public static int screenWidth;
+    public static int screenHigh;
 
     public RCTCameraView(Context context) {
         super(context);
@@ -44,6 +46,8 @@ public class RCTCameraView extends ViewGroup {
 
     @Override
     protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
+        screenHigh = bottom-top;
+        screenWidth = right-left;
         layoutViewFinder(left, top, right, bottom);
     }
 
