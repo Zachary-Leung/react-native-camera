@@ -59,6 +59,31 @@ public class RCTCamera {
         return cameraInfo.previewHeight;
     }
 
+    public float getBestPreviewSizeRatio(int type){
+        int width = Integer.MAX_VALUE,height=Integer.MAX_VALUE;
+        Camera camera = acquireCameraInstance(type);
+        Camera.Size result = null;
+        if(camera == null) {
+            return 1;
+        }
+        Camera.Parameters params = camera.getParameters();
+        for (Camera.Size size : params.getSupportedPreviewSizes()) {
+            if (size.width <= width && size.height <= height) {
+                if (result == null) {
+                    result = size;
+                } else {
+                    int resultArea = result.width * result.height;
+                    int newArea = size.width * size.height;
+
+                    if (newArea > resultArea) {
+                        result = size;
+                    }
+                }
+            }
+        }
+        return (float) result.height/result.width;//以竖屏计算比例
+    }
+
     public Camera.Size getBestPreviewSize(int type, int width, int height)
     {
         Camera camera = _cameras.get(type);

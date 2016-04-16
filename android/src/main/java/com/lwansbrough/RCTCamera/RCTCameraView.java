@@ -65,7 +65,7 @@ public class RCTCameraView extends ViewGroup {
                 _viewFinder.setFlashMode(this._flashMode);
             }
             if (-1 != this._torchMode) {
-                _viewFinder.setFlashMode(this._torchMode);
+                _viewFinder.setTorchMode(this._torchMode);
             }
             addView(_viewFinder);
         }
@@ -126,12 +126,12 @@ public class RCTCameraView extends ViewGroup {
         switch (this._aspect) {
             case RCTCameraModule.RCT_CAMERA_ASPECT_FIT:
                 ratio = this._viewFinder.getRatio();
-                if (ratio * height > width) {
-                    viewfinderHeight = (int) (width / ratio);
+                if (ratio<1) {
+                    viewfinderHeight = (int) (width+(width*(1-ratio)));
                     viewfinderWidth = (int) width;
                 } else {
-                    viewfinderWidth = (int) (ratio * height);
                     viewfinderHeight = (int) height;
+                    viewfinderWidth = (int)(height*ratio);
                 }
                 break;
             case RCTCameraModule.RCT_CAMERA_ASPECT_FILL:
