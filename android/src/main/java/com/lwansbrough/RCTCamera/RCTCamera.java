@@ -5,6 +5,7 @@
 package com.lwansbrough.RCTCamera;
 
 import android.hardware.Camera;
+import android.util.Log;
 
 import java.util.HashMap;
 import java.util.List;
@@ -59,7 +60,7 @@ public class RCTCamera {
         return cameraInfo.previewHeight;
     }
 
-    public float getBestPreviewSizeRatio(int type){
+    public float getBestPictureSizeRatio(int type){
         int width = Integer.MAX_VALUE,height=Integer.MAX_VALUE;
         Camera camera = acquireCameraInstance(type);
         Camera.Size result = null;
@@ -67,7 +68,7 @@ public class RCTCamera {
             return 1;
         }
         Camera.Parameters params = camera.getParameters();
-        for (Camera.Size size : params.getSupportedPreviewSizes()) {
+        for (Camera.Size size : params.getSupportedPictureSizes()) {
             if (size.width <= width && size.height <= height) {
                 if (result == null) {
                     result = size;
@@ -81,6 +82,7 @@ public class RCTCamera {
                 }
             }
         }
+//        Log.d("snake","TYPE:"+type+"getBestPictureSizeRatio W:"+result.width+"H:"+result.height);
         return (float) result.height/result.width;//以竖屏计算比例
     }
 
@@ -92,20 +94,27 @@ public class RCTCamera {
             return null;
         }
         Camera.Parameters params = camera.getParameters();
+        float Ratio = getBestPictureSizeRatio(type);
         for (Camera.Size size : params.getSupportedPreviewSizes()) {
+//            Log.d("snake","TYPE:"+type+" getBestPreviewSize W:"+size.width+"H:"+size.height);
+            float newRatio = (float) size.height/size.width;
+//            Log.d("snake","TYPE:"+type+" getBestPreviewSize newRatio:"+newRatio);
             if (size.width <= width && size.height <= height) {
                 if (result == null) {
                     result = size;
                 } else {
+                    float resultRatio = (float)result.height/result.width;
                     int resultArea = result.width * result.height;
                     int newArea = size.width * size.height;
-
-                    if (newArea > resultArea) {
+                    if (newArea>resultArea&&newRatio ==Ratio) {
                         result = size;
+                    }else if(newRatio==Ratio&&resultRatio!=Ratio){
+                        result=size;
                     }
                 }
             }
         }
+//        Log.d("snake","TYPE:"+type+"getBestPreviewSize W:"+result.width+"H:"+result.height);
         return result;
     }
 
@@ -131,6 +140,7 @@ public class RCTCamera {
                 }
             }
         }
+//        Log.d("snake","TYPE:"+type+"getBestPictureSize W:"+result.width+"H:"+result.height);
         return result;
     }
 
@@ -269,6 +279,7 @@ public class RCTCamera {
         cameraInfo.rotation = rotation;
         // TODO: take in account the _orientation prop
 
+//        Log.d("snake","displayRotation: "+displayRotation);
         camera.setDisplayOrientation(displayRotation);
 
         Camera.Parameters parameters = camera.getParameters();

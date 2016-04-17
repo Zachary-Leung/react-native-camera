@@ -7,6 +7,7 @@ package com.lwansbrough.RCTCamera;
 import android.content.Context;
 import android.graphics.*;
 import android.hardware.SensorManager;
+import android.util.Log;
 import android.view.OrientationEventListener;
 import android.view.ViewGroup;
 import android.view.WindowManager;
@@ -126,13 +127,24 @@ public class RCTCameraView extends ViewGroup {
         switch (this._aspect) {
             case RCTCameraModule.RCT_CAMERA_ASPECT_FIT:
                 ratio = this._viewFinder.getRatio();
+//                Log.d("snake","ratio :"+ratio);
                 if (ratio<1) {
                     viewfinderHeight = (int) (width+(width*(1-ratio)));
                     viewfinderWidth = (int) width;
+                    if(viewfinderHeight>height){
+                        viewfinderWidth = (int) (width*(height/viewfinderHeight));
+                        viewfinderHeight = (int) height;
+                    }
                 } else {
                     viewfinderHeight = (int) height;
                     viewfinderWidth = (int)(height*ratio);
+                    if(viewfinderWidth>width){
+                        viewfinderHeight = (int)(height*(width/viewfinderWidth));
+                        viewfinderWidth =(int)width;
+                    }
                 }
+//                Log.d("snake","RCTCameraView width:"+width+" height:"+height);
+//                Log.d("snake","RCTCameraView viewfinderWidth:"+viewfinderWidth+" viewfinderHeight:"+viewfinderHeight);
                 break;
             case RCTCameraModule.RCT_CAMERA_ASPECT_FILL:
                 ratio = this._viewFinder.getRatio();
