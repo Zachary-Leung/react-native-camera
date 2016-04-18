@@ -129,7 +129,7 @@ public class RCTCameraView extends ViewGroup {
                 ratio = this._viewFinder.getRatio();
 //                Log.d("snake","ratio :"+ratio);
                 if (ratio<1) {
-                    viewfinderHeight = (int) (width+(width*(1-ratio)));
+                    viewfinderHeight = (int) (width/ratio);
                     viewfinderWidth = (int) width;
                     if(viewfinderHeight>height){
                         viewfinderWidth = (int) (width*(height/viewfinderHeight));

@@ -5,6 +5,7 @@
 package com.lwansbrough.RCTCamera;
 
 import android.hardware.Camera;
+import android.util.DisplayMetrics;
 import android.util.Log;
 
 import java.util.HashMap;
@@ -82,7 +83,7 @@ public class RCTCamera {
                 }
             }
         }
-//        Log.d("snake","TYPE:"+type+"getBestPictureSizeRatio W:"+result.width+"H:"+result.height);
+        Log.d("snake","TYPE:"+type+"getBestPictureSizeRatio W:"+result.width+"H:"+result.height);
         return (float) result.height/result.width;//以竖屏计算比例
     }
 
@@ -99,7 +100,8 @@ public class RCTCamera {
 //            Log.d("snake","TYPE:"+type+" getBestPreviewSize W:"+size.width+"H:"+size.height);
             float newRatio = (float) size.height/size.width;
 //            Log.d("snake","TYPE:"+type+" getBestPreviewSize newRatio:"+newRatio);
-            if (size.width <= width && size.height <= height) {
+            //防止摄像头分辨率过高造成变形，预览宽高不得比大于两都最少值（默认传入width:1920,height:1080）
+            if (size.width <= height && size.height <= height) {
                 if (result == null) {
                     result = size;
                 } else {
@@ -285,9 +287,10 @@ public class RCTCamera {
         Camera.Parameters parameters = camera.getParameters();
         parameters.setRotation(cameraInfo.rotation);
 
+
         // set preview size
         // defaults to highest resolution available
-        Camera.Size optimalPreviewSize = getBestPreviewSize(type, Integer.MAX_VALUE, Integer.MAX_VALUE);
+        Camera.Size optimalPreviewSize = getBestPreviewSize(type, 1920, 1080);
         int width = optimalPreviewSize.width;
         int height = optimalPreviewSize.height;
 
