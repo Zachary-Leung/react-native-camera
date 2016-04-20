@@ -4,9 +4,11 @@
 
 package com.lwansbrough.RCTCamera;
 
+import android.content.Context;
 import android.hardware.Camera;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.WindowManager;
 
 import java.util.HashMap;
 import java.util.List;
@@ -95,28 +97,19 @@ public class RCTCamera {
             return null;
         }
         Camera.Parameters params = camera.getParameters();
-        float Ratio = getBestPictureSizeRatio(type);
-        for (Camera.Size size : params.getSupportedPreviewSizes()) {
-//            Log.d("snake","TYPE:"+type+" getBestPreviewSize W:"+size.width+"H:"+size.height);
-            float newRatio = (float) size.height/size.width;
-//            Log.d("snake","TYPE:"+type+" getBestPreviewSize newRatio:"+newRatio);
-            //防止摄像头分辨率过高造成变形，预览宽高不得比大于两都最少值（默认传入width:1920,height:1080）
-            if (size.width <= height && size.height <= height) {
+        for (Camera.Size size : params.getSupportedPictureSizes()) {
+            if (size.width <= width && size.height <= height) {
                 if (result == null) {
                     result = size;
                 } else {
-                    float resultRatio = (float)result.height/result.width;
                     int resultArea = result.width * result.height;
                     int newArea = size.width * size.height;
-                    if (newArea>resultArea&&newRatio ==Ratio) {
+                    if (newArea > resultArea) {
                         result = size;
-                    }else if(newRatio==Ratio&&resultRatio!=Ratio){
-                        result=size;
                     }
                 }
             }
         }
-//        Log.d("snake","TYPE:"+type+"getBestPreviewSize W:"+result.width+"H:"+result.height);
         return result;
     }
 
@@ -282,23 +275,21 @@ public class RCTCamera {
         // TODO: take in account the _orientation prop
 
 //        Log.d("snake","displayRotation: "+displayRotation);
-        camera.setDisplayOrientation(displayRotation);
+        camera.setDisplayOrientation(90);
 
         Camera.Parameters parameters = camera.getParameters();
-        parameters.setRotation(cameraInfo.rotation);
+//        parameters.setRotation(cameraInfo.rotation);
 
 
         // set preview size
         // defaults to highest resolution available
-        Camera.Size optimalPreviewSize = getBestPreviewSize(type, 1920, 1080);
-        int width = optimalPreviewSize.width;
-        int height = optimalPreviewSize.height;
-
-        if(RCTCameraView.screenHigh >0){
-            if(height > RCTCameraView.screenHigh || width > RCTCameraView.screenWidth){
-                height = RCTCameraView.screenHigh;
-                width = RCTCameraView.screenWidth;
-            }
+        WindowManager wm = (WindowManager) RCTCameraModule._reactContext.getSystemService(Context.WINDOW_SERVICE);
+        int mScreenWidth = wm.getDefaultDisplay().getWidth();
+        int mScreenHigh = wm.getDefaultDisplay().getHeight();
+        if(mScreenWidth >0){
+            Camera.Size optimalPreviewSize = getBestPreviewSize(type,mScreenHigh ,mScreenWidth);
+            int width = optimalPreviewSize.width;
+            int height = optimalPreviewSize.height;
             parameters.setPreviewSize(width, height);
             try {
                 camera.setParameters(parameters);

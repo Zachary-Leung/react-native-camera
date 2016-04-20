@@ -4,8 +4,12 @@
 
 package com.lwansbrough.RCTCamera;
 
+import android.content.ContentResolver;
+import android.content.ContentUris;
+import android.content.ContentValues;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Matrix;
 import android.hardware.Camera;
 import android.media.MediaActionSound;
 import android.net.Uri;
@@ -52,7 +56,7 @@ public class RCTCameraModule extends ReactContextBaseJavaModule {
     public static final int MEDIA_TYPE_IMAGE = 1;
     public static final int MEDIA_TYPE_VIDEO = 2;
 
-    private final ReactApplicationContext _reactContext;
+    public static ReactApplicationContext _reactContext;
 
     public RCTCameraModule(ReactApplicationContext reactContext) {
         super(reactContext);
@@ -174,11 +178,27 @@ public class RCTCameraModule extends ReactContextBaseJavaModule {
             MediaActionSound sound = new MediaActionSound();
             sound.play(MediaActionSound.SHUTTER_CLICK);
         }
-        
+
+        final int routation = RCTCameraView._actualDeviceOrientation;
+
         RCTCamera.getInstance().setCaptureQuality(options.getInt("type"), options.getString("quality"));
         camera.takePicture(null, null, new Camera.PictureCallback() {
             @Override
             public void onPictureTaken(byte[] data, Camera camera) {
+                BitmapFactory.Options bitmapOptions = new BitmapFactory.Options();
+                bitmapOptions.inJustDecodeBounds = false;
+                bitmapOptions.inSampleSize = 2;
+                Bitmap bitmapPre = BitmapFactory.decodeByteArray(data, 0, data.length, bitmapOptions);
+                Matrix matrix = new Matrix();
+                matrix.reset();
+                matrix.postRotate(routation);
+                bitmapPre =  Bitmap.createBitmap(bitmapPre, 0, 0, bitmapPre.getWidth(),
+                        bitmapPre.getHeight(), matrix, true);
+
+//                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+//                bitmapPre.compress(Bitmap.CompressFormat.PNG, 80, baos);
+//                byte[] data =  baos.toByteArray();
+
                 camera.stopPreview();
                 camera.startPreview();
                 switch (options.getInt("target")) {
@@ -187,11 +207,11 @@ public class RCTCameraModule extends ReactContextBaseJavaModule {
                         promise.resolve(encoded);
                         break;
                     case RCT_CAMERA_CAPTURE_TARGET_CAMERA_ROLL:
-                        BitmapFactory.Options bitmapOptions = new BitmapFactory.Options();
-                        Bitmap bitmap = BitmapFactory.decodeByteArray(data, 0, data.length, bitmapOptions);
+//                        BitmapFactory.Options bitmapOptions = new BitmapFactory.Options();
+//                        Bitmap bitmap = BitmapFactory.decodeByteArray(data, 0, data.length, bitmapOptions);
                         String url = MediaStore.Images.Media.insertImage(
                                 _reactContext.getContentResolver(),
-                                bitmap, options.getString("title"),
+                                bitmapPre, options.getString("title"),
                                 options.getString("description"));
                         promise.resolve(url);
                         break;

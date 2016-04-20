@@ -4,10 +4,10 @@
 
 package com.lwansbrough.RCTCamera;
 
+import android.app.Activity;
 import android.content.Context;
 import android.graphics.*;
 import android.hardware.SensorManager;
-import android.util.Log;
 import android.view.OrientationEventListener;
 import android.view.ViewGroup;
 import android.view.WindowManager;
@@ -16,23 +16,21 @@ public class RCTCameraView extends ViewGroup {
     private final OrientationEventListener _orientationListener;
     private final Context _context;
     private RCTCameraViewFinder _viewFinder = null;
-    private int _actualDeviceOrientation = -1;
+    public static int _actualDeviceOrientation = -1;
     private int _aspect = RCTCameraModule.RCT_CAMERA_ASPECT_FIT;
     private String _captureQuality = "high";
     private int _torchMode = -1;
     private int _flashMode = -1;
-    public static int screenWidth;
-    public static int screenHigh;
 
     public RCTCameraView(Context context) {
         super(context);
         this._context = context;
-        setActualDeviceOrientation(context);
+        setActualDeviceOrientation(context,0);
 
         _orientationListener = new OrientationEventListener(context, SensorManager.SENSOR_DELAY_NORMAL) {
             @Override
             public void onOrientationChanged(int orientation) {
-                if (setActualDeviceOrientation(_context)) {
+                if (orientation >0 && setActualDeviceOrientation(_context,orientation)) {
                     layoutViewFinder();
                 }
             }
@@ -47,8 +45,9 @@ public class RCTCameraView extends ViewGroup {
 
     @Override
     protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
-        screenHigh = bottom-top;
-        screenWidth = right-left;
+//        screenHigh = bottom-top;
+//        screenWidth = right-left;
+//        RCTCamera.getInstance().acquireCameraInstance(2);
         layoutViewFinder(left, top, right, bottom);
     }
 
@@ -66,7 +65,7 @@ public class RCTCameraView extends ViewGroup {
                 _viewFinder.setFlashMode(this._flashMode);
             }
             if (-1 != this._torchMode) {
-                _viewFinder.setTorchMode(this._torchMode);
+                _viewFinder.setFlashMode(this._torchMode);
             }
             addView(_viewFinder);
         }
@@ -100,11 +99,20 @@ public class RCTCameraView extends ViewGroup {
         }
     }
 
-    private boolean setActualDeviceOrientation(Context context) {
+    private boolean setActualDeviceOrientation(Context context,int orientation) {
         int actualDeviceOrientation = ((WindowManager) context.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay().getOrientation();
+        if((orientation > 315 && orientation <= 360) || (orientation > 0 && orientation <= 45)){
+            actualDeviceOrientation = 90;
+        }else if((orientation > 45 && orientation <= 135)){
+            actualDeviceOrientation = 180;
+        }else if((orientation > 135 && orientation <= 225)){
+            actualDeviceOrientation = 270;
+        }else if((orientation > 225 && orientation <= 315)){
+            actualDeviceOrientation = 0;
+        }
         if (_actualDeviceOrientation != actualDeviceOrientation) {
             _actualDeviceOrientation = actualDeviceOrientation;
-            RCTCamera.getInstance().setActualDeviceOrientation(_actualDeviceOrientation);
+//            RCTCamera.getInstance().setActualDeviceOrientation(_actualDeviceOrientation);
             return true;
         } else {
             return false;
@@ -127,24 +135,13 @@ public class RCTCameraView extends ViewGroup {
         switch (this._aspect) {
             case RCTCameraModule.RCT_CAMERA_ASPECT_FIT:
                 ratio = this._viewFinder.getRatio();
-//                Log.d("snake","ratio :"+ratio);
-                if (ratio<1) {
-                    viewfinderHeight = (int) (width/ratio);
+                if (ratio * height > width) {
+                    viewfinderHeight = (int) (width / ratio);
                     viewfinderWidth = (int) width;
-                    if(viewfinderHeight>height){
-                        viewfinderWidth = (int) (width*(height/viewfinderHeight));
-                        viewfinderHeight = (int) height;
-                    }
                 } else {
+                    viewfinderWidth = (int) (ratio * height);
                     viewfinderHeight = (int) height;
-                    viewfinderWidth = (int)(height*ratio);
-                    if(viewfinderWidth>width){
-                        viewfinderHeight = (int)(height*(width/viewfinderWidth));
-                        viewfinderWidth =(int)width;
-                    }
                 }
-//                Log.d("snake","RCTCameraView width:"+width+" height:"+height);
-//                Log.d("snake","RCTCameraView viewfinderWidth:"+viewfinderWidth+" viewfinderHeight:"+viewfinderHeight);
                 break;
             case RCTCameraModule.RCT_CAMERA_ASPECT_FILL:
                 ratio = this._viewFinder.getRatio();
